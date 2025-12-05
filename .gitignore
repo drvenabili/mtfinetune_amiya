@@ -1,0 +1,3 @@
+.ruff*
+.venv
+__pycache__

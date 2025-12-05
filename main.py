@@ -1,0 +1,56 @@
+import typer
+from enum import Enum
+from transformers import AutoModelForCausalLM, AutoTokenizer
+import torch
+from datasets import load_dataset
+from trl import SFTTrainer, setup_chat_format
+from configs import get_lora_config, get_sft_config
+
+app = typer.Typer()
+
+class TuningMethod(str, Enum):
+    trl = "trl"
+    lora = "lora"
+
+@app.command()
+def main(
+    method: TuningMethod = typer.Option(TuningMethod.trl, help="The finetuning method to use: 'trl' (full finetuning) or 'lora'."),
+    model_name: str = typer.Option("HuggingFaceTB/SmolLM3-3B", help="The name of the model to finetune.")
+):
+    device = ("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Running on {device} with method {method.value} for model {model_name}")
+
+    # Get model
+    model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.float16).to(device)
+    tokenizer = AutoTokenizer.from_pretrained(model_name)
+
+
+    # setup chat format
+    model, tokenizer = setup_chat_format(model, tokenizer)
+
+
+    # get data
+    dataset = load_dataset("fillwith/realdata")
+
+    # Configure LoRA if selected
+    peft_config = None
+    if method == TuningMethod.lora:
+        peft_config = get_lora_config()
+
+    # sfttrainer
+    sft_config = get_sft_config(method.value)
+    trainer = SFTTrainer(
+        model=model,
+        args = sft_config,
+        train_dataset=dataset["train"],
+        eval_dataset=dataset["validation"],
+        tokenizer=tokenizer,
+        peft_config=peft_config,
+    )
+
+    # main training loop
+    trainer.train()
+    trainer.save_model(f"{model_name.split('/')[-1]}-sft-{method.value}")
+
+if __name__ == "__main__":
+    app()
