@@ -50,7 +50,11 @@ def main(
 
     # main training loop
     trainer.train()
-    trainer.save_model(f"{model_name.split('/')[-1]}-sft-{method.value}")
+    trainer.save_model(f"{model_name.split('/')[-1]}-aladdinFTI-sft-{method.value}")
+    try:
+        trainer.push_to_hub(f"{model_name.split('/')[-1]}-aladdinFTI-sft-{method.value}", private=True)
+    except Exception as e:
+        print(f"Could not push to hub: {e}")
 
 if __name__ == "__main__":
     app()
