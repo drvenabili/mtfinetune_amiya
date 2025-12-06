@@ -1,6 +1,7 @@
 import typer
 from enum import Enum
-from typing import Optional
+from typing import Optional, List
+from pathlib import Path
 
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
@@ -96,6 +97,121 @@ def generate(
     print("\n=== MODEL RESPONSE ===\n")
     print(text)
     print("\n======================\n")
+
+@app.command("generate-batch")
+def generate_batch(
+    prompts_file: Path = typer.Argument(
+        ...,
+        help="Text file with one prompt per line.",
+    ),
+    model_path: str = typer.Option(
+        "SmolLM3-3B-aladdinFTI-sft-trl",
+        help=(
+            "Path or Hub name of the fine-tuned model, e.g. "
+            "'SmolLM3-3B-aladdinFTI-sft-trl' or 'SmolLM3-3B-aladdinFTI-sft-lora'."
+        ),
+    ),
+    method: TuningMethod = typer.Option(
+        TuningMethod.trl,
+        help="Tuning method used for this model: 'trl' (full finetuning), 'lora' or 'base'.",
+    ),
+    batch_size: int = typer.Option(
+        8, help="Number of prompts to process in parallel."
+    ),
+    max_new_tokens: int = typer.Option(256, help="Maximum number of new tokens to generate."),
+    temperature: float = typer.Option(0.7, help="Sampling temperature."),
+    top_p: float = typer.Option(0.9, help="Top-p nucleus sampling cut-off."),
+    seed: Optional[int] = typer.Option(111, help="Random seed for reproducibility."),
+    output_file: Optional[Path] = typer.Option(
+        None,
+        help="Optional path to save outputs as TSV: prompt<TAB>response.",
+    ),
+):
+    """
+    Generate responses for many prompts using batched inference.
+    """
+    # Read prompts
+    prompts: List[str] = []
+    with prompts_file.open("r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if line:
+                prompts.append(line)
+
+    if not prompts:
+        typer.echo("No prompts found in the file.")
+        raise typer.Exit(code=1)
+
+    if seed is not None:
+        torch.manual_seed(seed)
+        if torch.cuda.is_available():
+            torch.cuda.manual_seed_all(seed)
+
+    model, tokenizer, device = _load_model_and_tokenizer(model_path, method)
+
+    all_responses: List[str] = []
+
+    for start in range(0, len(prompts), batch_size):
+        batch_prompts = prompts[start : start + batch_size]
+
+        # Build chat messages per prompt
+        batch_messages = [
+            [{"role": "user", "content": p}] for p in batch_prompts
+        ]
+
+        # Tokenize with padding so we can batch
+        inputs = tokenizer.apply_chat_template(
+            batch_messages,
+            tokenize=True,
+            add_generation_prompt=True,
+            return_tensors="pt",
+            padding=True,
+        )
+
+        # Move to device (inputs is usually a dict with input_ids, attention_mask)
+        if isinstance(inputs, dict):
+            inputs = {k: v.to(device) for k, v in inputs.items()}
+            input_ids = inputs["input_ids"]
+            attention_mask = inputs["attention_mask"]
+        else:
+            # Fallback if tokenizer returns a tensor directly
+            input_ids = inputs.to(device)
+            # Build a full-ones attention mask (no padding case)
+            attention_mask = torch.ones_like(input_ids, dtype=torch.long)
+
+        with torch.no_grad():
+            output_ids = model.generate(
+                input_ids=input_ids,
+                attention_mask=attention_mask,
+                max_new_tokens=max_new_tokens,
+                do_sample=True,
+                temperature=temperature,
+                top_p=top_p,
+                pad_token_id=tokenizer.eos_token_id,
+            )
+
+        # For each item in the batch, cut off the input part.
+        # We use attention_mask to get the real input length per example.
+        for i, prompt_text in enumerate(batch_prompts):
+            input_len = int(attention_mask[i].sum().item())
+            generated_ids = output_ids[i, input_len:]
+            text = tokenizer.decode(generated_ids, skip_special_tokens=True)
+            all_responses.append(text)
+
+            print("\n=== EXAMPLE", start + i, "===\n")
+            print("PROMPT:")
+            print(prompt_text)
+            print("\nRESPONSE:")
+            print(text)
+            print("\n======================\n")
+
+    # Optionally save to file
+    if output_file is not None:
+        with output_file.open("w", encoding="utf-8") as f:
+            for p, r in zip(prompts, all_responses):
+                # simple TSV: prompt<TAB>response
+                f.write(p.replace("\t", " ") + "\t" + r.replace("\n", "\\n") + "\n")
+        typer.echo(f"Saved {len(all_responses)} examples to {output_file}")
 
 if __name__ == "__main__":
     app()
