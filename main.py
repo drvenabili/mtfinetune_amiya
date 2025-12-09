@@ -5,6 +5,8 @@ import torch
 from datasets import load_dataset
 from trl import SFTTrainer, setup_chat_format
 from configs import get_lora_config, get_sft_config
+from huggingface_hub import login
+import os
 
 app = typer.Typer()
 
@@ -57,4 +59,16 @@ def main(
         print(f"Could not push to hub: {e}")
 
 if __name__ == "__main__":
+    print(f"Trying to log in to Hugging Face Hub...")
+    if not os.path.exists("hf_token"):
+        print("""##############
+No hf_token file found. 
+Resulting model will not be uploaded to the hub.
+##############""")
+    else:
+        with open("hf_token", "r") as f:
+            token = f.read().strip()
+            login(token)
+            print("Logged in to Hugging Face Hub.")
+
     app()
