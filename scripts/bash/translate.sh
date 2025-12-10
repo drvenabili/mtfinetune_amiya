@@ -34,7 +34,7 @@ do
   then
     continue
   fi
-  sbatch ./scripts/slurm/generate/generate-batch.sh ./data/bi/btec/madar26/${data} ${output_directory}/${data::-4}.out ${model}
+  sbatch ./scripts/slurm/generate/generate-batch.sh ./data/bi/btec/madar26/${data} ${output_directory}/btc/${data::-4}.out ${model}
 done
 
 ### FLORES dataset
@@ -47,6 +47,6 @@ do
   then
     continue
   fi
-  sbatch ./scripts/slurm/generate/generate-batch.sh ./data/bi/wiki/flores-dev/${data} ${output_directory}/${data::-4}.out ${model}
+  sbatch ./scripts/slurm/generate/generate-batch.sh ./data/bi/wiki/flores-dev/${data} ${output_directory}/flores/${data::-4}.out ${model}
 done
 
