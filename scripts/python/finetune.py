@@ -1,5 +1,8 @@
 import typer
 from enum import Enum
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
 from datasets import load_dataset
@@ -15,7 +18,7 @@ class TuningMethod(str, Enum):
     lora = "lora"
 
 @app.command()
-def main(
+def finetune(
     method: TuningMethod = typer.Option(TuningMethod.trl, help="The finetuning method to use: 'trl' (full finetuning) or 'lora'."),
     model_name: str = typer.Option("HuggingFaceTB/SmolLM3-3B", help="The name of the model to finetune.")
 ):
