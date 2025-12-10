@@ -34,12 +34,14 @@ def _load_model_and_tokenizer(
         model = AutoModelForCausalLM.from_pretrained(
             model_path,
             device_map="auto",
-    #        torch_dtype=torch.bfloat16,
+            torch_dtype=torch.bfloat16,
         )
 
     tokenizer = AutoTokenizer.from_pretrained(model_path)
+    # if we are generating, better to be in the left
+    tokenizer.padding_side = "left"
     if "Llama" in model_path:
-        tokenizer.add_special_tokens({'pad_token': '[PAD]'})
+        tokenizer.pad_token = tokenizer.eos_token
 
     model.to(device)
     print(f"model to device {device}")
@@ -161,7 +163,8 @@ def generate_batch(
 
         # Build chat messages per prompt
         batch_messages = [
-            [{"role": "user", "content": p}] for p in batch_prompts
+            [{"role": "system", "content": "You are a translator"},
+              {"role": "user", "content": p}] for p in batch_prompts
         ]
 
         # Tokenize with padding so we can batch
@@ -216,7 +219,7 @@ def generate_batch(
         with output_file.open("w", encoding="utf-8") as f:
             for p, r in zip(prompts, all_responses):
                 # simple TSV: prompt<TAB>response
-                f.write(p.replace("\t", " ") + "\t" + r.replace("\n", "\\n") + "\n")
+                f.write(r.replace("\n", "\\n") + "\n")
         typer.echo(f"Saved {len(all_responses)} examples to {output_file}")
 
 if __name__ == "__main__":

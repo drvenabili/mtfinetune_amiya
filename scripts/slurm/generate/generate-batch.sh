@@ -8,6 +8,7 @@
 #SBATCH --gres=gpu:1,VramPerGpu:24GB                  # maximum run time.
 
 ### loading the modules
+export CUDA_LAUNCH_BLOCKING=1
 ml load GCCcore/11.3.0 Python/3.10.4 CUDA/12.8.0
 source .env/bin/activate
 
