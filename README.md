@@ -4,7 +4,7 @@ Python3.10+ and Pytorch2.2
 
 ```
 uv sync
-uv run scripts/python/finetune.py --help
+uv run scripts/python/finetune/finetune.py --help
 ```
 ## Installig this repository
 

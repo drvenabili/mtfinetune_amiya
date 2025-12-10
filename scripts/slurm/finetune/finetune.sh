@@ -13,4 +13,4 @@ source .env/bin/activate
 method=${1:-trl}
 model_name=${2:-HuggingFaceTB/SmolLM3-3B}
 
-srun uv run scripts/python/finetune.py --method "$method" --model-name "$model_name"
+srun uv run scripts/python/finetune/finetune.py --method "$method" --model-name "$model_name"
