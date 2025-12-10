@@ -6,8 +6,8 @@ Python3.10+ and Pytorch2.2
 poetry install
 poetry run python main.py --help
 ```
+## Installig this repository
 
-```
 1. Load modules to have python and CUDA 
 
 $ ml load GCCcore/11.3.0 Python/3.10.4 CUDA/12.8.0
@@ -35,8 +35,6 @@ $ ./scripts/bash/health.sh
 Expected output:
 
 There is a gpu available!
-
-```
 
 ```
 ## Scripts
