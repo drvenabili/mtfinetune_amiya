@@ -4,6 +4,9 @@ from typing import Optional, List
 from pathlib import Path
 
 import torch
+
+import pandas as pd
+
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from peft import AutoPeftModelForCausalLM  # needed for LoRA models
 
@@ -29,10 +32,15 @@ def _load_model_and_tokenizer(
         )
     else:
         model = AutoModelForCausalLM.from_pretrained(
-            model_path
+            model_path,
+            device_map="auto",
+    #        torch_dtype=torch.bfloat16,
         )
 
     tokenizer = AutoTokenizer.from_pretrained(model_path)
+    if "Llama" in model_path:
+        tokenizer.add_special_tokens({'pad_token': '[PAD]'})
+
     model.to(device)
     print(f"model to device {device}")
     model.eval()
@@ -118,10 +126,11 @@ def generate_batch(
     batch_size: int = typer.Option(
         8, help="Number of prompts to process in parallel."
     ),
-    max_new_tokens: int = typer.Option(256, help="Maximum number of new tokens to generate."),
+    max_new_tokens: int = typer.Option(512, help="Maximum number of new tokens to generate."),
     temperature: float = typer.Option(0.7, help="Sampling temperature."),
     top_p: float = typer.Option(0.9, help="Top-p nucleus sampling cut-off."),
     seed: Optional[int] = typer.Option(111, help="Random seed for reproducibility."),
+    reasoning_mode: Optional[bool] = typer.Option(False, help="Reasoning mode (thinking mode)"),
     output_file: Optional[Path] = typer.Option(
         None,
         help="Optional path to save outputs as TSV: prompt<TAB>response.",
@@ -132,12 +141,8 @@ def generate_batch(
     """
     # Read prompts
     prompts: List[str] = []
-    with prompts_file.open("r", encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-            if line:
-                prompts.append(line)
-
+    df = pd.read_csv(prompts_file, sep=',')
+    prompts = df['prompt'].tolist()
     if not prompts:
         typer.echo("No prompts found in the file.")
         raise typer.Exit(code=1)
@@ -166,6 +171,7 @@ def generate_batch(
             add_generation_prompt=True,
             return_tensors="pt",
             padding=True,
+            enable_thinking=reasoning_mode,
         )
 
         # Move to device (inputs is usually a dict with input_ids, attention_mask)

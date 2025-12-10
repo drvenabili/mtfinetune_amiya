@@ -12,30 +12,36 @@ ml load GCCcore/11.3.0 Python/3.10.4 CUDA/12.8.0
 source .env/bin/activate
 
 ### the arguments of the bash
-prompt=${1}
-model=${2}
-method=${3}
-max_new_tokens=${4:-256}
-temperature=${5:-0.7}
-top_p=${6:-0.9}
-seed=${7:-111}
+prompts_file=${1}
+output_file=${2}
+model=${3}
+method=${4:-base}
+max_new_tokens=${5:-256}
+temperature=${6:-0.7}
+top_p=${7:-0.9}
+seed=${8:-111}
 
 #### print arguments ####
-echo "prompt=${prompt}"
+echo "prompts_file=${prompts_file}"
 echo "model-path=${model}"
 echo "method=${method}"
 echo "max-new-tokens=${max_new_tokens}"
 echo "temperature=${temperature}"
 echo "top-p=${top_p}"
 echo "seed=${seed}"
+if [ -z ${output_file} ]
+then
+  echo "output_file=${output_file}"
+fi
 ########################
 
-srun uv run ./scripts/python/generate/generate.py generate \
-  "${prompt}" \
+srun uv run ./scripts/python/generate/generate.py generate-batch \
+  "${prompts_file}" \
   --model-path ${model} \
   --method ${method} \
   --max-new-tokens ${max_new_tokens} \
   --temperature ${temperature} \
   --top-p ${top_p} \
-  --seed ${seed}
+  --seed ${seed} \
+  --output-file ${output_file}
 
