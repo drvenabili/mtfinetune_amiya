@@ -10,7 +10,12 @@
 ml load GCCcore/11.3.0 Python/3.10.4 CUDA/12.8.0
 source .env/bin/activate
 
-method=${1:-trl}
-model_name=${2:-HuggingFaceTB/SmolLM3-3B}
+### the arguments of the bash
+method=${1}
+model=${2}
+
+#### print arguments ####
+echo "method=${method}"
+echo "model-path=${model}"
 
 srun uv run scripts/python/finetune/finetune.py --method "$method" --model-name "$model_name"
