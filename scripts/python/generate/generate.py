@@ -217,7 +217,7 @@ def generate_batch(
     # Optionally save to file
     if output_file is not None:
         with output_file.open("w", encoding="utf-8") as f:
-            for p, r in zip(prompts, all_responses):
+            for r in all_responses:
                 # simple TSV: prompt<TAB>response
                 f.write(r.replace("\n", "\\n") + "\n")
         typer.echo(f"Saved {len(all_responses)} examples to {output_file}")

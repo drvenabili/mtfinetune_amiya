@@ -3,12 +3,11 @@
 #SBATCH --error decode_logs_%j.error     # optional. By default a file slurm-{jobid}.out will be created
 #SBATCH --output decode_logs_%j.out      # optional. By default the error and output files are merged
 #SBATCH --mem 20GB
-#SBATCH --time 01:00:00                  # maximum run time
+#SBATCH --time 00:20:00                  # maximum run time
 #SBATCH --partition shared-gpu
 #SBATCH --gres=gpu:1,VramPerGpu:24GB                  # maximum run time.
 
 ### loading the modules
-export CUDA_LAUNCH_BLOCKING=1
 ml load GCCcore/11.3.0 Python/3.10.4 CUDA/12.8.0
 source .env/bin/activate
 

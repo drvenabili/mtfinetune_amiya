@@ -15,7 +15,8 @@ fi
 
 if [ ! -d ${output_directory} ]
 then
-  mkdir -p ${output_directory}
+  mkdir -p ${output_directory}/btc
+  mkdir -p ${output_directory}/flores
 fi
 
 echo "model=${1}"
