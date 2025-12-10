@@ -30,7 +30,8 @@ echo "top-p=${top_p}"
 echo "seed=${seed}"
 ########################
 
-srun uv run ./scripts/python/generate/generate.py generate \
+srun uv run ./scripts/python/generate/generate.py \
+  generate \
   "${prompt}" \
   --model-path ${model} \
   --method ${method} \
