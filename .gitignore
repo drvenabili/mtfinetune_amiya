@@ -4,3 +4,5 @@ __pycache__
 .env/
 decode_logs*
 hf_token
+data/*
+data.zip
