@@ -36,7 +36,9 @@ def spbleu_corpus_score(refs: List[str], hyps: List[str]) -> Dict[str, Optional[
     return {"SpBLEU_corpus_score": _sacre_score(refs, hyps, spbleu)}
 
 def chrf_corpus_score(refs: List[str], hyps: List[str]) -> Dict[str, Optional[float]]:
-    chrf = CHRF()
+    chrf =CHRF(char_order=6,
+               word_order=2,
+               beta=2)
     return {"ChrF_corpus_score": _sacre_score(refs, hyps, chrf)}
 
 # -------------------------
