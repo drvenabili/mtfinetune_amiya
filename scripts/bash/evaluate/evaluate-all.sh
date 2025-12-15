@@ -13,8 +13,8 @@ sbatch \
   --error=${logs_name}_fidelity.err \
   ./scripts/slurm/evaluate/fidelity.sh ${output_dir}
 
-sbatch \
-  --output=${logs_name}_mt.out \
-  --error=${logs_name}_mt.err \
-   ./scripts/slurm/evaluate/translation.sh ${output_dir}
+#sbatch \
+#  --output=${logs_name}_mt.out \
+#  --error=${logs_name}_mt.err \
+#  ./scripts/slurm/evaluate/translation.sh ${output_dir}
 

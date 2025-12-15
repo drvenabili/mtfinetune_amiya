@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
 #SBATCH --job-name=score_eval
-#SBATCH --error=decode_logs_%j.error
-#SBATCH --output=decode_logs_%j.out
 #SBATCH --mem=20GB
 #SBATCH --time=00:20:00
 #SBATCH --partition=shared-cpu
-
+ml load GCCcore/11.3.0 Python/3.10.4 CUDA/12.8.0
+source .venv/bin/activate
 
 if [[ $# -lt 1 ]]; then
   echo "Usage: sbatch translation.sh <output_model_dir>"
@@ -40,7 +39,6 @@ madar=(dza-eng.csv egy-eng.csv eng-dza.csv eng-mar.csv eng-sau.csv eng-syr.csv m
 
 for data in "${madar[@]}"
 do
-  continue
   reference_file=./data/bi/btec/madar26/${data}
   score_mt ${output_files}/${data::-4}.out ${reference_file} 
 done
@@ -53,7 +51,6 @@ flores=(egy-eng.csv eng-sau.csv msa-mar.csv pse-msa.csv egy-msa.csv eng-syr.csv 
 
 for data in "${flores[@]}"
 do
-  continue
   reference_file=./data/bi/wiki/flores-dev/${data}
   score_mt ${output_mt_flores}/${data::-4}.out ${reference_file} 
 done

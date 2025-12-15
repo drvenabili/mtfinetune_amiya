@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 #SBATCH --job-name=score_eval
-#SBATCH --error=decode_logs_%j.error
-#SBATCH --output=decode_logs_%j.out
 #SBATCH --mem=20GB
 #SBATCH --time=00:20:00
-#SBATCH --partition=shared-cpu
+#SBATCH --partition shared-gpu
+#SBATCH --constraint=COMPUTE_TYPE_TURING|COMPUTE_TYPE_AMPERE|COMPUTE_TYPE_ADA
+#SBATCH --gres=gpu:1                  # maximum run time.
 
+ml load GCCcore/11.3.0 Python/3.10.4 CUDA/12.8.0
+source .venv/bin/activate
 export TRANSFORMERS_VERBOSITY=error
 
 ##### Args ####
