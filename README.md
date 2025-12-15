@@ -3,8 +3,8 @@
 Python3.10+ and Pytorch2.2
 
 ```
-poetry install
-poetry run python main.py --help
+uv sync
+uv run scripts/python/finetune/finetune.py --help
 ```
 ## Installig this repository
 
