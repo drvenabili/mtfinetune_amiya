@@ -1,7 +1,7 @@
 model=${1}
 output_directory=${2}
 method=${3}
-max_new_tokens=${4:-256}
+max_new_tokens=${4:-512}
 temperature=${5:-0.7}
 top_p=${7:-0.9}
 
