@@ -39,7 +39,7 @@ mkdir -p ${output_mt}
 output_mt_madar=${output_mt}/madar
 mkdir -p ${output_mt_madar}
 
-madar=(dza-eng.csv egy-eng.csv eng-dza.csv eng-mar.csv eng-sau.csv eng-syr.csv mar-msa.csv msa-egy.csv msa-pse.csv msa-sdn.csv pse-eng.csv sau-eng.csv sdn-eng.csv syr-eng.csv dza-msa.csv egy-msa.csv eng-egy.csv eng-pse.csv eng-sdn.csv mar-eng.csv msa-dza.csv msa-mar.csv msa-sau.csv msa-syr.csv pse-msa.csv sau-msa.csv sdn-msa.csv syr-msa.csv)
+madar=(egy-eng.csv eng-mar.csv eng-sau.csv eng-syr.csv mar-msa.csv msa-egy.csv msa-pse.csv pse-eng.csv sau-eng.csv syr-eng.csv egy-msa.csv eng-egy.csv eng-pse.csv mar-eng.csv msa-mar.csv msa-sau.csv msa-syr.csv pse-msa.csv sau-msa.csv syr-msa.csv)
 
 for data in "${madar[@]}"
 do
@@ -70,6 +70,7 @@ do
   sbatch ./scripts/slurm/generate/generate-batch.sh ./data/bi/wiki/flores-dev/${data} ${output_file} ${model} ${method} ${max_new_tokens} ${temperature} ${top_p} ${seed}
 done
  
+ 
 ###################################
 #### Fidelity Generation ##########
 ###################################
@@ -86,7 +87,7 @@ output_files=${output_fidelity_monolingual}/madar
 mkdir -p ${output_files}
 
 prompt_files=./data/mono/btec/madar26/
-data_files=(dza.csv  egy.csv  mar.csv  pse.csv  sau.csv  sdn.csv  syr.csv)
+data_files=(egy.csv  mar.csv  pse.csv  sau.csv syr.csv)
 for data in "${data_files[@]}"
 do
   output_file=${output_files}/${data::-4}.out
@@ -103,7 +104,7 @@ output_files=${output_fidelity_monolingual}/habibi
 mkdir -p ${output_files}
 
 prompt_files=./data/mono/music/habibi
-data_files=(dza.csv egy.csv kwt.csv mar.csv pse.csv sau.csv sdn.csv syr.csv)
+data_files=(egy.csv mar.csv pse.csv sau.csv syr.csv)
 for data in "${data_files[@]}"
 do
   output_file=${output_files}/${data::-4}.out
@@ -144,7 +145,7 @@ output_files=${output_fidelity_cross}/hehe
 mkdir -p ${output_files}
 
 prompt_files=./data/xling/hehe
-data_files=(dza.csv egy.csv kwt.csv mar.csv pse.csv sau.csv sdn.csv syr.csv)
+data_files=(egy.csv mar.csv pse.csv sau.csv syr.csv)
 
 for data in "${data_files[@]}"
 do
@@ -162,7 +163,7 @@ output_files=${output_fidelity_cross}/okapi
 mkdir -p ${output_files}
 
 prompt_files=./data/xling/okapi
-data_files=(dza.csv egy.csv kwt.csv mar.csv pse.csv sau.csv sdn.csv syr.csv)
+data_files=(egy.csv mar.csv pse.csv sau.csv syr.csv)
 
 for data in "${data_files[@]}"
 do
@@ -180,7 +181,7 @@ output_files=${output_fidelity_cross}/sharegpt
 mkdir -p ${output_files}
 
 prompt_files=./data/xling/sharegpt
-data_files=(dza.csv egy.csv kwt.csv mar.csv pse.csv sau.csv sdn.csv syr.csv)
+data_files=(egy.csv mar.csv pse.csv sau.csv syr.csv)
 
 for data in "${data_files[@]}"
 do
