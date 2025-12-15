@@ -13,9 +13,11 @@ source .env/bin/activate
 ### the arguments of the bash
 method=${1}
 model=${2}
+dataset=${3}
 
 #### print arguments ####
 echo "method=${method}"
 echo "model-path=${model}"
+echo "dataset=${dataset}"
 
-srun uv run scripts/python/finetune/finetune.py --method "$method" --model-name "$model_name"
+srun uv run scripts/python/finetune/finetune.py --method "$method" --model-name "$model" --dataset-name "$dataset"
