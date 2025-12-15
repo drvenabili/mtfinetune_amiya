@@ -142,6 +142,9 @@ def generate_batch(
     Generate responses for many prompts using batched inference.
     """
     # Read prompts
+    do_sample: bool = True
+    if temperature == 0:
+        do_sample = False
     prompts: List[str] = []
     df = pd.read_csv(prompts_file, sep=',')
     prompts = df['prompt'].tolist()
@@ -193,7 +196,7 @@ def generate_batch(
                 input_ids=input_ids,
                 attention_mask=attention_mask,
                 max_new_tokens=max_new_tokens,
-                do_sample=True,
+                do_sample=do_sample,
                 temperature=temperature,
                 top_p=top_p,
                 pad_token_id=tokenizer.eos_token_id,

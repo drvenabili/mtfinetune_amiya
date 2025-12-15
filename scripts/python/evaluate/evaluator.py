@@ -45,7 +45,7 @@ def chrf_corpus_score(refs: List[str], hyps: List[str]) -> Dict[str, Optional[fl
 # I/O
 # -------------------------
 def load_files(path: Path, csv_field: str) -> List[str]:
-    if path.suffix.lower() == ".txt":
+    if path.suffix.lower() == ".txt" or path.suffix.lower() == ".out":
         return path.read_text(encoding="utf-8").splitlines()
     elif path.suffix.lower() == ".csv":
         return pd.read_csv(path, sep=',',quotechar='"', engine='python')[csv_field].tolist()
