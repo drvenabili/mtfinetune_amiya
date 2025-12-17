@@ -19,7 +19,6 @@ import fasttext
 
 app = typer.Typer(add_completion=False, no_args_is_help=True)
 
-
 # -------------------------
 # MT metrics (SacreBLEU)
 # -------------------------
@@ -36,9 +35,9 @@ def spbleu_corpus_score(refs: List[str], hyps: List[str]) -> Dict[str, Optional[
     return {"SpBLEU_corpus_score": _sacre_score(refs, hyps, spbleu)}
 
 def chrf_corpus_score(refs: List[str], hyps: List[str]) -> Dict[str, Optional[float]]:
-    chrf =CHRF(char_order=6,
-               word_order=2,
-               beta=2)
+    chrf = CHRF(char_order=6,
+                word_order=2,
+                beta=2)
     return {"ChrF_corpus_score": _sacre_score(refs, hyps, chrf)}
 
 # -------------------------
@@ -132,19 +131,174 @@ class ADIScorer:
 
     @torch.no_grad()
     def run_aldi(self, text: str) -> float:
-        inputs = self.aldi_tokenizer(text, return_tensors="pt", truncation=True).to(self.device)
+        inputs = self.aldi_tokenizer(text,
+                                     return_tensors="pt",
+                                     truncation=True,
+                                     padding=True,
+                                     max_length=512).to(self.device)
         logits = self.aldi_model(**inputs).logits
         return float(min(max(0.0, logits[0][0].item()), 1.0))
 
     @torch.no_grad()
     def run_nadi(self, text: str, dialect_country_code: str) -> Tuple[float, float]:
-        inputs = self.nadi_tokenizer(text, return_tensors="pt", truncation=True).to(self.device)
+        if not text:
+            return []
+
+        inputs = self.nadi_tokenizer(text,
+                                     return_tensors="pt",
+                                     truncation=True,
+                                     max_length=512).to(self.device)
         logits = self.nadi_model(**inputs).logits
         probs = torch.softmax(logits, dim=1).flatten().tolist()
         idx = self._dialect2index(dialect_country_code)
         prob = float(probs[idx])
         macro_prob = float(self._macro_prob(probs, dialect_country_code))
         return prob, macro_prob
+
+    @torch.no_grad()
+    def run_aldi_batch(self, texts: List[str], batch_size: int = 64) -> List[float]:
+        """
+        Batched ALDI.
+        Keeps same behavior as run_aldi(): take logits[:,0] and clamp to [0,1].
+        """
+        if not texts:
+            return []
+
+        out_scores: List[float] = []
+        max_len = 512  # or getattr(self.aldi_model.config, "max_position_embeddings", 512)
+
+        for start in range(0, len(texts), batch_size):
+            batch = texts[start : start + batch_size]
+
+            inputs = self.aldi_tokenizer(
+                batch,
+                return_tensors="pt",
+                truncation=True,
+                padding=True,
+                max_length=max_len,
+            ).to(self.device)
+
+            logits = self.aldi_model(**inputs).logits  # [B, ?]
+            vals = logits[:, 0].detach().float().cpu().tolist()
+
+            # clamp to [0,1] like the original
+            out_scores.extend([float(min(max(0.0, v), 1.0)) for v in vals])
+
+        return out_scores
+
+
+    @torch.no_grad()
+    def run_nadi_batch(
+        self,
+        texts: List[str],
+        dialect_country_code: str,
+        batch_size: int = 64
+    ) -> Tuple[List[float], List[float]]:
+        """
+        Batched NADI.
+        Keeps same behavior as run_nadi(): softmax over dim=1, pick dialect idx,
+        and compute macro_prob using your existing _macro_prob().
+        """
+        if not texts:
+            return [], []
+
+        idx = self._dialect2index(dialect_country_code)
+
+        prob_list: List[float] = []
+        macro_prob_list: List[float] = []
+        max_len = 512  # or getattr(self.nadi_model.config, "max_position_embeddings", 512)
+
+        for start in range(0, len(texts), batch_size):
+            batch = texts[start : start + batch_size]
+
+            inputs = self.nadi_tokenizer(
+                batch,
+                return_tensors="pt",
+                truncation=True,
+                padding=True,          # important in batch mode
+                max_length=max_len,
+            ).to(self.device)
+
+            logits = self.nadi_model(**inputs).logits   # [B, C]
+            probs = torch.softmax(logits, dim=1)        # [B, C]
+
+            # dialect prob
+            dialect_probs = probs[:, idx].detach().float().cpu().tolist()
+            prob_list.extend([float(p) for p in dialect_probs])
+
+            # macro prob (uses your existing helper per row)
+            probs_cpu = probs.detach().float().cpu().tolist()  # list of [C] per example
+            macro_prob_list.extend([
+                float(self._macro_prob(row, dialect_country_code)) for row in probs_cpu
+            ])
+
+        return prob_list, macro_prob_list
+
+
+    def score_outputs_batch(
+        self,
+        outputs: List[str],
+        *,
+        dialect: str,
+        require_target_lang: bool = True,
+        allow_msa: bool = False,
+        batch_size: int = 32,
+    ) -> Dict[str, float]:
+        """
+        Batched scoring for ADI/ALDI-style metrics.
+
+        Behavior matches your original:
+        - empty text => contributes 0.0 to all lists
+        - LID gate fail => contributes 0.0 to all lists
+        - otherwise: prob, macro_prob from NADI; dness from ALDI; score=prob*dness; macro_score=macro_prob*dness
+        - return means over ALL outputs (including invalid ones as zeros)
+        """
+        if (not allow_msa) and dialect == "msa":
+            return {"prob": 0.0, "dialectness": 0.0, "score": 0.0, "macro_score": 0.0}
+
+        n = len(outputs)
+        if n == 0:
+            return {"prob": 0.0, "dialectness": 0.0, "score": 0.0, "macro_score": 0.0}
+
+        # Full-length arrays (invalid entries stay 0.0)
+        prob_arr = np.zeros(n, dtype=np.float32)
+        macro_prob_arr = np.zeros(n, dtype=np.float32)
+        dness_arr = np.zeros(n, dtype=np.float32)
+
+        # Filter valid texts, keep indices to scatter back
+        valid_idx: List[int] = []
+        valid_texts: List[str] = []
+
+        for i, out in enumerate(outputs):
+            text = self.clean_text(normalize_text(out))
+            if not text:
+                continue
+            if self.run_lid_gate(text) == 0:
+                continue
+            valid_idx.append(i)
+            valid_texts.append(text)
+
+        if valid_texts:
+            probs, macro_probs = self.run_nadi_batch(
+                valid_texts, dialect_country_code=dialect, batch_size=batch_size
+            )
+            dness = self.run_aldi_batch(valid_texts, batch_size=batch_size)
+
+            # Scatter back to full arrays
+            for j, i in enumerate(valid_idx):
+                prob_arr[i] = float(probs[j])
+                macro_prob_arr[i] = float(macro_probs[j])
+                dness_arr[i] = float(dness[j])
+
+        score_arr = prob_arr * dness_arr
+        macro_score_arr = macro_prob_arr * dness_arr
+
+        return {
+            "prob": float(prob_arr.mean()),
+            "dialectness": float(dness_arr.mean()),
+            "score": float(score_arr.mean()),
+            "macro_score": float(macro_score_arr.mean()),
+        }
 
     def score_outputs(
         self,
@@ -228,12 +382,63 @@ def score_adi(
         maps=maps,
         device=device,
     )
-    scores = scorer.score_outputs(
+    scores = scorer.score_outputs_batch(
         hyps, dialect=dialect, require_target_lang=require_target_lang, allow_msa=allow_msa
     )
     payload = {"n": len(hyps), "dialect": dialect, "target_lang": target_lang, **scores}
     typer.echo(json.dumps(payload, ensure_ascii=False, indent=2))
 
+
+@app.command("score-adi-batches")
+def score_adi(
+    outputs_paths: Path = typer.Argument(..., exists=True, readable=True, help="one or more output files"),
+    dialects: List[str] = typer.Option(..., "--dialect", "-d", help="Dialect country code for each file (e.g., egy, mar, dza, ...)."),
+    target_lang: str = typer.Option("ara", help="Key used for MICROLANGUAGE_MAP (e.g., ara)."),
+    csv_field_hypothesis: str = typer.Option("generations", help="Field to read from JSONL."),
+    require_target_lang: bool = typer.Option(True, help="Gate scoring with fastText LID."),
+    allow_msa: bool = typer.Option(False, help="If False, returns zeros when dialect == msa."),
+    aldi_model_id: str = typer.Option("AMR-KELEG/Sentence-ALDi"),
+    nadi_model_id: str = typer.Option("AMR-KELEG/NADI2024-baseline"),
+    device: Optional[str] = typer.Option(None, help="cpu/cuda (default: auto)."),
+):
+    if len(dialects) != len(outputs_paths):
+        raise typer.BadParameter(
+            f"You provided {len(outputs_paths)} file(s) but {len(dialects)} dialect(s). "
+            f"Provide one --dialect per file, in the same order."
+        )
+    maps = load_project_maps()
+    scorer = ADIScorer(
+        aldi_model_id=aldi_model_id,
+        nadi_model_id=nadi_model_id,
+        target_lang=target_lang,
+        maps=maps,
+        device=device,
+    )
+
+    for p in outputs_paths:
+        hyps = load_files(outputs_path, csv_field=csv_field_hypothesis)
+        total_n += len(hyps)
+        scores = scorer.score_outputs_batch(
+            hyps, dialect=dialect, require_target_lang=require_target_lang, allow_msa=allow_msa
+        )
+
+        results.append(
+            {
+                "file": str(p),
+                "n": len(hyps),
+                "dialect": dialect,
+                "target_lang": target_lang,
+                **scores
+            }
+        )
+    payload = {
+        "k": len(outputs_paths),
+        "total_n": total_n,
+        "dialect": dialect,
+        "target_lang": target_lang,
+        "results": results,
+    }
+    typer.echo(json.dumps(payload, ensure_ascii=False, indent=2))
 
 @app.command("score-mt")
 def score_mt(

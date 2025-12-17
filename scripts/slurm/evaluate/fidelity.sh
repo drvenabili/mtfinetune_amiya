@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #SBATCH --job-name=score_eval
 #SBATCH --mem=20GB
-#SBATCH --time=00:20:00
+#SBATCH --time=01:30:00
 #SBATCH --partition shared-gpu
 #SBATCH --constraint=COMPUTE_TYPE_TURING|COMPUTE_TYPE_AMPERE|COMPUTE_TYPE_ADA
 #SBATCH --gres=gpu:1                  # maximum run time.
@@ -18,7 +18,7 @@ fi
 output_model=${1}
 
 #### parameters output
-echo "generations_directory=${output_model}"
+#echo "generations_directory=${output_model}"
 
 
 function score_adi() {
@@ -45,8 +45,7 @@ output_fidelity_monolingual=${output_fidelity}/mono
 ###### MADAR
 output_files=${output_fidelity_monolingual}/madar
 prompt_files=./data/mono/btec/madar26/
-data_files=(dza.csv  egy.csv  mar.csv  pse.csv  sau.csv  sdn.csv  syr.csv)
-
+data_files=(egy.csv mar.csv pse.csv sau.csv syr.csv)
 for data in "${data_files[@]}"
 do
   dialect=${data::-4}
@@ -56,9 +55,8 @@ done
 
 ##### habibi
 output_files=${output_fidelity_monolingual}/habibi
-
 prompt_files=./data/mono/music/habibi
-data_files=(dza.csv egy.csv kwt.csv mar.csv pse.csv sau.csv sdn.csv syr.csv)
+data_files=(egy.csv mar.csv pse.csv sau.csv syr.csv)
 
 for data in "${data_files[@]}"
 do
@@ -80,7 +78,6 @@ do
   score_adi ${output_files}/${dialect}.out ${dialect}
 done
 
-
 ###################################
 ##### Crosslingual ################
 ###################################
@@ -90,7 +87,7 @@ output_fidelity_cross=${output_fidelity}/cross
 output_files=${output_fidelity_cross}/hehe
 
 prompt_files=./data/xling/hehe
-data_files=(dza.csv egy.csv kwt.csv mar.csv pse.csv sau.csv sdn.csv syr.csv)
+data_files=(egy.csv mar.csv pse.csv sau.csv syr.csv)
 
 for data in "${data_files[@]}"
 do
@@ -100,12 +97,11 @@ do
   score_adi ${output_file} ${dialect}
 done
 
-echo "okapi"
 ## okapi
 output_files=${output_fidelity_cross}/okapi
 
 prompt_files=./data/xling/okapi
-data_files=(dza.csv egy.csv kwt.csv mar.csv pse.csv sau.csv sdn.csv syr.csv)
+data_files=(egy.csv mar.csv pse.csv sau.csv syr.csv)
 
 for data in "${data_files[@]}"
 do
@@ -117,9 +113,8 @@ done
 
 ## sharegpt
 output_files=${output_fidelity_cross}/sharegpt
-
 prompt_files=./data/xling/sharegpt
-data_files=(dza.csv egy.csv kwt.csv mar.csv pse.csv sau.csv sdn.csv syr.csv)
+data_files=(egy.csv mar.csv pse.csv sau.csv syr.csv)
 
 for data in "${data_files[@]}"
 do

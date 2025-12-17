@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #SBATCH --job-name=score_eval
 #SBATCH --mem=20GB
-#SBATCH --time=01:00:00
+#SBATCH --time=00:05:00
 #SBATCH --partition=shared-cpu
 ml load GCCcore/11.3.0 Python/3.10.4 CUDA/12.8.0
 source .venv/bin/activate
@@ -15,16 +15,15 @@ output_model=${1}
 #### parameters output
 #echo "generations_directory=${output_model}"
 
+##### Light version of the scores (less time)
 function score_mt() {
  if [ $# -ne 2 ]; then
     echo "Error: Exactly 2 arguments required!"
     return 1
   fi
-  output=$(uv run ./scripts/python/evaluate/evaluator.py score-mt ${1} ${2})
+  output=$(sacrebleu ${2} -i ${1} -m chrf --chrf-char-order 6 --chrf-word-order 2 -w6 -b)
 # ChrF_corpus_score
-  chrf=$(echo ${output} | jq -r '.ChrF_corpus_score')
-  bleu=$(echo ${output} | jq -r '.SpBLEU_corpus_score')
-  echo -e ${chrf}" "${bleu}
+  echo ${output}
 }
 
 ###################################
@@ -39,7 +38,8 @@ madar=(egy-eng.csv eng-mar.csv eng-sau.csv eng-syr.csv mar-msa.csv msa-egy.csv m
 
 for data in "${madar[@]}"
 do
-  reference_file=./data/bi/btec/madar26/${data}
+  pair_language=${data::-4}
+  reference_file=./data/bi/btec/madar26/references/${pair_language}
   score_mt ${output_files}/${data::-4}.out ${reference_file} 
 done
 
@@ -51,7 +51,8 @@ flores=(egy-eng.csv eng-sau.csv msa-mar.csv pse-msa.csv egy-msa.csv eng-syr.csv 
 
 for data in "${flores[@]}"
 do
-  reference_file=./data/bi/wiki/flores-dev/${data}
+  pair_language=${data::-4}
+  reference_file=./data/bi/wiki/flores-dev/references/${pair_language}
   score_mt ${output_mt_flores}/${data::-4}.out ${reference_file} 
 done
 

@@ -77,19 +77,19 @@ def generate(
             torch.cuda.manual_seed_all(seed)
 
     model, tokenizer, device = _load_model_and_tokenizer(model_path, method)
-
-    # Build chat messages – this assumes you trained with chat format via setup_chat_format
-    messages = [
-        {"role": "user", "content": prompt}
-    ]
-
-    # Use the tokenizer’s chat template (set during training with setup_chat_format)
-    input_ids = tokenizer.apply_chat_template(
-        messages,
-        tokenize=True,
-        add_generation_prompt=True,
-        return_tensors="pt",
-    ).to(device)
+    if getattr(tokenizer, "chat_template", None):
+        messages = [{"role": "user", "content": prompt}]
+        input_ids = tokenizer.apply_chat_template(
+            messages,
+            tokenize=True,
+            add_generation_prompt=True,
+            return_tensors="pt",
+        ).to(device)
+    else:
+        input_ids = tokenizer(
+            prompt,
+            return_tensors="pt"
+        ).to(device)
 
     with torch.no_grad():
         output_ids = model.generate(
@@ -164,32 +164,39 @@ def generate_batch(
     for start in range(0, len(prompts), batch_size):
         batch_prompts = prompts[start : start + batch_size]
 
-        # Build chat messages per prompt
-        batch_messages = [
-            [{"role": "system", "content": "You are a translator"},
-              {"role": "user", "content": p}] for p in batch_prompts
-        ]
-
-        # Tokenize with padding so we can batch
-        inputs = tokenizer.apply_chat_template(
-            batch_messages,
-            tokenize=True,
-            add_generation_prompt=True,
-            return_tensors="pt",
-            padding=True,
-            enable_thinking=reasoning_mode,
-        )
+        if getattr(tokenizer, "chat_template", None):
+            # Build chat messages per prompt
+            print("Batch template!")
+            batch_messages = [
+                [{"role": "user", "content": p}] for p in batch_prompts
+            ]
+            # Tokenize with padding so we can batch
+            inputs = tokenizer.apply_chat_template(
+                batch_messages,
+                tokenize=True,
+                add_generation_prompt=True,
+                return_tensors="pt",
+                padding=True,
+                enable_thinking=reasoning_mode,
+            )
+        else:
+            print("No batch template")
+            inputs = tokenizer(
+                batch_prompts,
+                padding=True,
+                return_tensors="pt"
+            ).to(device)
 
         # Move to device (inputs is usually a dict with input_ids, attention_mask)
-        if isinstance(inputs, dict):
-            inputs = {k: v.to(device) for k, v in inputs.items()}
-            input_ids = inputs["input_ids"]
-            attention_mask = inputs["attention_mask"]
-        else:
+        #if isinstance(inputs, dict):
+        inputs = {k: v.to(device) for k, v in inputs.items()}
+        input_ids = inputs["input_ids"]
+        attention_mask = inputs["attention_mask"]
+        #else:
             # Fallback if tokenizer returns a tensor directly
-            input_ids = inputs.to(device)
+         #   input_ids = inputs.to(device)
             # Build a full-ones attention mask (no padding case)
-            attention_mask = torch.ones_like(input_ids, dtype=torch.long)
+          #  attention_mask = torch.ones_like(input_ids, device=device)
 
         with torch.no_grad():
             output_ids = model.generate(
@@ -210,12 +217,12 @@ def generate_batch(
             text = tokenizer.decode(generated_ids, skip_special_tokens=True)
             all_responses.append(text)
 
-            print("\n=== EXAMPLE", start + i, "===\n")
-            print("PROMPT:")
-            print(prompt_text)
-            print("\nRESPONSE:")
-            print(text)
-            print("\n======================\n")
+            #print("\n=== EXAMPLE", start + i, "===\n")
+            #print("PROMPT:")
+            #print(prompt_text)
+            #print("\nRESPONSE:")
+            #print(text)
+            #print("\n======================\n")
 
     # Optionally save to file
     if output_file is not None:

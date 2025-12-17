@@ -3,9 +3,10 @@
 #SBATCH --error decode_logs_%j.error     # optional. By default a file slurm-{jobid}.out will be created
 #SBATCH --output decode_logs_%j.out      # optional. By default the error and output files are merged
 #SBATCH --mem 20GB
-#SBATCH --time 00:20:00                  # maximum run time
+#SBATCH --time 00:25:00                  # maximum run time
 #SBATCH --partition shared-gpu
-#SBATCH --gres=gpu:1,VramPerGpu:24GB                  # maximum run time.
+#SBATCH --constraint=COMPUTE_TYPE_TURING|COMPUTE_TYPE_AMPERE|COMPUTE_TYPE_ADA
+#SBATCH --gres=gpu:1,VramPerGpu:30GB                  # maximum run time.
 
 ### loading the modules
 ml load GCCcore/11.3.0 Python/3.10.4 CUDA/12.8.0
@@ -29,6 +30,7 @@ echo "max-new-tokens=${max_new_tokens}"
 echo "temperature=${temperature}"
 echo "top-p=${top_p}"
 echo "seed=${seed}"
+
 if [ -z ${output_file} ]
 then
   echo "output_file=${output_file}"
