@@ -47,6 +47,7 @@ do
   # we do not need to translate if it's already translated
   if [[ -f ${output_file} ]]
   then
+    echo "skipping ${output_file}"
     continue
   fi
   sbatch ./scripts/slurm/generate/generate-batch.sh ./data/bi/btec/madar26/${data} ${output_file} ${model} ${method} ${max_new_tokens} ${temperature} ${top_p} ${seed}
@@ -65,6 +66,7 @@ do
   # we do not need to translate if it's already translated
   if [[ -f ${output_file} ]]
   then
+    echo "skipping ${output_file}"
     continue
   fi
   sbatch ./scripts/slurm/generate/generate-batch.sh ./data/bi/wiki/flores-dev/${data} ${output_file} ${model} ${method} ${max_new_tokens} ${temperature} ${top_p} ${seed}
@@ -94,6 +96,7 @@ do
   # we do not need to translate if it's already translated
   if [[ -f ${otput_file} ]]
   then
+    echo "skipping ${output_file}"
     continue
   fi
   sbatch ./scripts/slurm/generate/generate-batch.sh ${prompt_files}/${data} ${output_file} ${model} ${method} ${max_new_tokens} ${temperature} ${top_p} ${seed}
@@ -111,6 +114,7 @@ do
   # we do not need to translate if it's already translated
   if [[ -f ${output_file} ]]
   then
+    echo "skipping ${output_file}"
     continue
   fi
   sbatch ./scripts/slurm/generate/generate-batch.sh ${prompt_files}/${data} ${output_file} ${model} ${method} ${max_new_tokens} ${temperature} ${top_p} ${seed}
@@ -129,6 +133,7 @@ do
   # we do not need to translate if it's already translated
   if [[ -f ${output_file} ]]
   then
+    echo "skipping ${output_file}"
     continue
   fi
   sbatch ./scripts/slurm/generate/generate-batch.sh ${prompt_files}/${data} ${output_file} ${model} ${method} ${max_new_tokens} ${temperature} ${top_p} ${seed}
@@ -153,6 +158,7 @@ do
   # we do not need to translate if it's already translated
   if [[ -f ${output_file} ]]
   then
+    echo "skipping ${output_file}"
     continue
   fi
   sbatch ./scripts/slurm/generate/generate-batch.sh ${prompt_files}/${data} ${output_file} ${model} ${method} ${max_new_tokens} ${temperature} ${top_p} ${seed}
@@ -171,6 +177,7 @@ do
   # we do not need to translate if it's already translated
   if [[ -f ${output_file} ]]
   then
+    echo "skipping ${output_file}"
     continue
   fi
   sbatch ./scripts/slurm/generate/generate-batch.sh ${prompt_files}/${data} ${output_file} ${model} ${method} ${max_new_tokens} ${temperature} ${top_p} ${seed}
@@ -189,6 +196,7 @@ do
   # we do not need to translate if it's already translated
   if [[ -f ${output_file} ]]
   then
+    echo "skipping ${output_file}"
     continue
   fi
   sbatch ./scripts/slurm/generate/generate-batch.sh ${prompt_files}/${data} ${output_file} ${model} ${method} ${max_new_tokens} ${temperature} ${top_p} ${seed}

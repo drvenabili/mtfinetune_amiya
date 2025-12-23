@@ -3,6 +3,7 @@ from enum import Enum
 from typing import Optional, List
 from pathlib import Path
 
+from collections.abc import Mapping
 import torch
 
 import pandas as pd
@@ -186,17 +187,19 @@ def generate_batch(
                 padding=True,
                 return_tensors="pt"
             ).to(device)
-
         # Move to device (inputs is usually a dict with input_ids, attention_mask)
-        #if isinstance(inputs, dict):
-        inputs = {k: v.to(device) for k, v in inputs.items()}
-        input_ids = inputs["input_ids"]
-        attention_mask = inputs["attention_mask"]
-        #else:
+        if isinstance(inputs, Mapping):
+            inputs = {k: v.to(device) for k, v in inputs.items()}
+            input_ids = inputs["input_ids"]
+            attention_mask = inputs.get("attention_mask")
+            if attention_mask is None:
+                print("attention_mask is none")
+                ttention_mask = torch.ones_like(input_ids, device=device)
+        else:
             # Fallback if tokenizer returns a tensor directly
-         #   input_ids = inputs.to(device)
+            input_ids = inputs.to(device)
             # Build a full-ones attention mask (no padding case)
-          #  attention_mask = torch.ones_like(input_ids, device=device)
+            attention_mask = torch.ones_like(input_ids, device=device)
 
         with torch.no_grad():
             output_ids = model.generate(
