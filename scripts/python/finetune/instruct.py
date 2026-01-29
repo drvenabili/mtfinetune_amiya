@@ -47,7 +47,8 @@ try:
 except Exception:
     CHRF = None
 
-HF_TOKEN = "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"
+### add the token for huggingface
+HF_TOKEN = ""
 app = typer.Typer(add_completion=False, help="SFT training with YAML config, dataset-specific metrics and val splits.")
 
 
