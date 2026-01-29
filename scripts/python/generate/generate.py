@@ -38,6 +38,7 @@ def _load_model_and_tokenizer(
             torch_dtype=torch.bfloat16,
         )
 
+    print(f"loading tokenizer {model_path}")
     tokenizer = AutoTokenizer.from_pretrained(model_path)
     # if we are generating, better to be in the left
     tokenizer.padding_side = "left"
@@ -127,17 +128,21 @@ def generate_batch(
         help="Tuning method used for this model: 'trl' (full finetuning), 'lora' or 'base'.",
     ),
     batch_size: int = typer.Option(
-        8, help="Number of prompts to process in parallel."
+        16, help="Number of prompts to process in parallel."
     ),
     max_new_tokens: int = typer.Option(512, help="Maximum number of new tokens to generate."),
     temperature: float = typer.Option(0.7, help="Sampling temperature."),
     top_p: float = typer.Option(0.9, help="Top-p nucleus sampling cut-off."),
+    repetition_penalty: Optional[float] = typer.Option(
+        1.1,
+        help="Repetition penality for generation",
+    ),
     seed: Optional[int] = typer.Option(111, help="Random seed for reproducibility."),
     reasoning_mode: Optional[bool] = typer.Option(False, help="Reasoning mode (thinking mode)"),
     output_file: Optional[Path] = typer.Option(
         None,
         help="Optional path to save outputs as TSV: prompt<TAB>response.",
-    ),
+    )
 ):
     """
     Generate responses for many prompts using batched inference.
@@ -167,7 +172,6 @@ def generate_batch(
 
         if getattr(tokenizer, "chat_template", None):
             # Build chat messages per prompt
-            print("Batch template!")
             batch_messages = [
                 [{"role": "user", "content": p}] for p in batch_prompts
             ]
@@ -210,6 +214,8 @@ def generate_batch(
                 temperature=temperature,
                 top_p=top_p,
                 pad_token_id=tokenizer.eos_token_id,
+                repetition_penalty=repetition_penalty,
+                no_repeat_ngram_size=4
             )
 
         # For each item in the batch, cut off the input part.
