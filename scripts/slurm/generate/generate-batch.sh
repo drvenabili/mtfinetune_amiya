@@ -10,7 +10,7 @@
 
 ### loading the modules
 ml load GCCcore/11.3.0 Python/3.10.4 CUDA/12.8.0
-source .env/bin/activate
+source .venv/bin/activate
 
 ### the arguments of the bash
 prompts_file=${1}
@@ -20,7 +20,7 @@ method=${4:-base}
 max_new_tokens=${5:-256}
 temperature=${6:-0.7}
 top_p=${7:-0.9}
-seed=${8:-111}
+seed=${8:-42}
 
 #### print arguments ####
 echo "prompts_file=${prompts_file}"

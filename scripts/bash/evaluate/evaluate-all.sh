@@ -18,7 +18,6 @@ sbatch \
   --error=${logs_name}_mt.err \
   ./scripts/slurm/evaluate/chrf.sh ${output_dir}
 
-
 #### Calculate also spbleu
 #sbatch \
 #  --output=${logs_name}_mt.out \

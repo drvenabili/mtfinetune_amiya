@@ -3,7 +3,7 @@ output_directory=${2}
 method=${3}
 max_new_tokens=${4:-512}
 temperature=${5:-0.7}
-top_p=${7:-0.9}
+top_p=${6:-0.9}
 
 if [[ -z ${model} ]]
 then
@@ -88,13 +88,13 @@ output_fidelity_monolingual=${output_fidelity}/mono
 output_files=${output_fidelity_monolingual}/madar
 mkdir -p ${output_files}
 
-prompt_files=./data/mono/btec/madar26/
+prompt_files=./data/mono/btec/madar26
 data_files=(egy.csv  mar.csv  pse.csv  sau.csv syr.csv)
 for data in "${data_files[@]}"
 do
   output_file=${output_files}/${data::-4}.out
   # we do not need to translate if it's already translated
-  if [[ -f ${otput_file} ]]
+  if [[ -f ${output_file} ]]
   then
     echo "skipping ${output_file}"
     continue

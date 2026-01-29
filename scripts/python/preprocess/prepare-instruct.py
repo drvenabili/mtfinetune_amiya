@@ -121,7 +121,8 @@ def build_text_pair(
             msgs_prompt,
             tokenize=False,
             add_generation_prompt=True,
-            add_special_tokens=False
+            add_special_tokens=False,
+            enable_thinking=False
         )
 
         msgs_full.append({"role": "user", "content": prompt})
@@ -130,7 +131,8 @@ def build_text_pair(
             msgs_full,
             tokenize=False,
             add_generation_prompt=False,
-            add_special_tokens=False
+            add_special_tokens=False,
+            enable_thinking=False
         )
         return full_text, prompt_only_text
 
@@ -203,7 +205,7 @@ def tokenize_cmd(
     batch_size: Optional[int] = typer.Option(128, help="Numbero of batch size to preprocess")
 ):
     # Load data
-    df = pd.read_csv(csv_path, sep=delimiter, encoding=encoding)
+    df = pd.read_csv(csv_path, sep=delimiter, encoding=encoding, engine="python")
 
     if text_col_prompt not in df.columns or text_col_completion not in df.columns:
         raise typer.BadParameter(
