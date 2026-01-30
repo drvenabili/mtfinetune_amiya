@@ -26,12 +26,12 @@ function score_adi() {
     echo "Error: Exactly 2 arguments required!"
     return 1
   fi
-  output=$(uv run ./scripts/python/evaluate/evaluator.py score-adi ${1} --dialect ${2})
-  NADI=$(echo ${output} | jq -r '.prob')
-  ALDI=$(echo ${output} | jq -r '.dialectness')
-  ADI=$(echo ${output} | jq -r '.score')
-  MACRO_ADI=$(echo ${output} | jq -r '.macro_score')
-  echo -e ${NADI}" "${ALDI}" "${ADI}" "${MACRO_ADI}
+  output=$(uv run ./scripts/python/evaluate/evaluator.py score-adi "$1" --dialect "$2" 2>/dev/null || true)
+  NADI=$(echo "$output" | jq -r '.prob // 0.0' 2>/dev/null)
+  ALDI=$(echo "$output" | jq -r '.dialectness // 0.0' 2>/dev/null)
+  ADI=$(echo "$output" | jq -r '.score // 0.0' 2>/dev/null)
+  MACRO_ADI=$(echo "$output" | jq -r '.macro_score // 0.0' 2>/dev/null)
+  echo -e "${NADI:-0.0} ${ALDI:-0.0} ${ADI:-0.0} ${MACRO_ADI:-0.0}"
 }
 
 ###################################

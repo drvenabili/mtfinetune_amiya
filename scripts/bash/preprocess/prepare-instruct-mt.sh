@@ -11,8 +11,17 @@ mkdir -p "${OUTPUT_DIR}/${tokenizer}"
 function prepare-instruct() {
   input_file="${1}"
   output_file="${2}"
- 
-  sbatch ./scripts/slurm/preprocess/prepare-instruct.sh "${input_file}" "${tokenizer_path}/config" "${output_file}" 2048 " "
+  if [[ -d ${output_file} ]]
+  then
+    echo "skipping ${output_file}"
+    return
+  fi
+  if [[ -d "${tokenizer_path}/config" ]]
+  then
+    tokenizer_path="${tokenizer_path}/config"
+    echo "using ${tokenizer_path}"
+  fi 
+  sbatch ./scripts/slurm/preprocess/prepare-instruct.sh "${input_file}" ${tokenizer_path} "${output_file}" 2048 " "
 }
 
 ##
@@ -108,7 +117,7 @@ do
 done
 
 training_dir="madar26-dev"
-training_files=(dza-eng.csv  egy-msa.csv  eng-mar.csv  eng-sdn.csv  mar-msa.csv  msa-mar.csv  msa-sdn.csv  pse-msa.csv	sau-msa.csv  syr-eng.csv dza-msa.csv eng-dza.csv  eng-pse.csv  eng-syr.csv  msa-dza.csv  msa-pse.csv  msa-syr.csv  references	sdn-eng.csv  syr-msa.csv egy-eng.csv eng-egy.csv  eng-sau.csv  mar-eng.csv  msa-egy.csv  msa-sau.csv  pse-eng.csv  sau-eng.csv	sdn-msa.csv)
+training_files=(dza-eng.csv  egy-msa.csv  eng-mar.csv  eng-sdn.csv  mar-msa.csv  msa-mar.csv  msa-sdn.csv  pse-msa.csv	sau-msa.csv  syr-eng.csv dza-msa.csv eng-dza.csv  eng-pse.csv  eng-syr.csv  msa-dza.csv  msa-pse.csv  msa-syr.csv sdn-eng.csv  syr-msa.csv egy-eng.csv eng-egy.csv  eng-sau.csv  mar-eng.csv  msa-egy.csv  msa-sau.csv  pse-eng.csv  sau-eng.csv sdn-msa.csv)
 
 for data in "${training_files[@]}"
 do

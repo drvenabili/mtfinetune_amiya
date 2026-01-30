@@ -2,11 +2,11 @@
 #SBATCH --job-name decode           # this is a parameter to help you sort your job when listing it
 #SBATCH --error decode_logs_%j.error     # optional. By default a file slurm-{jobid}.out will be created
 #SBATCH --output decode_logs_%j.out      # optional. By default the error and output files are merged
-#SBATCH --mem 20GB
-#SBATCH --time 00:25:00                  # maximum run time
+#SBATCH --mem 40GB
+#SBATCH --time 03:00:00                  # maximum run time
 #SBATCH --partition shared-gpu
 #SBATCH --constraint=COMPUTE_TYPE_TURING|COMPUTE_TYPE_AMPERE|COMPUTE_TYPE_ADA
-#SBATCH --gres=gpu:1,VramPerGpu:30GB                  # maximum run time.
+#SBATCH --gres=gpu:1,VramPerGpu:50GB                  # maximum run time.
 
 ### loading the modules
 ml load GCCcore/11.3.0 Python/3.10.4 CUDA/12.8.0
