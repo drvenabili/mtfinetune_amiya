@@ -1,15 +1,15 @@
-# Aladdin-FTI @ AMILA
+# Aladdin-FTI @ AMIYA
 ## Three Wishes for Arabic NLP: Fidelity, Diglossia, and Multidialectal Generation
 
 **Authors**:  
-Jonathan Mutal<sup>*</sup>, Perla Al Almaoui<sup>*</sup>, Simon Hengchen<sup>*</sup><sup>+</sup>, and Pierrette Bouillon<sup>*</sup>
+Jonathan Mutal<sup>×</sup>, Perla Al Almaoui<sup>×</sup>, Simon Hengchen<sup>×</sup><sup>+</sup>, and Pierrette Bouillon<sup>×</sup>
 
 **Affiliations**:  
-<sup>*</sup>TIM, University of Geneva  
+<sup>×</sup>TIM, University of Geneva  
 <sup>+</sup>iguanodon.ai  
 
 **Paper**:  
-[Aladdin-FTI @ AMILA: Large Three Wishes for Arabic NLP: Fidelity, Diglossia, and Multidialectal Generation](https://aclanthology.org/####)
+[Aladdin-FTI @ AMIYA: Large Three Wishes for Arabic NLP: Fidelity, Diglossia, and Multidialectal Generation](https://aclanthology.org/####)
 
 **Model**:  
 [🤗 Available on Hugging Face](https://huggingface.co/jonathanmutal/XXX)
