@@ -12,7 +12,7 @@ Jonathan Mutal<sup>×</sup>, Perla Al Almaoui<sup>×</sup>, Simon Hengchen<sup>�
 [Aladdin-FTI @ AMIYA: Large Three Wishes for Arabic NLP: Fidelity, Diglossia, and Multidialectal Generation](https://aclanthology.org/####)
 
 **Model**:  
-[🤗 Available on Hugging Face](https://huggingface.co/jonathanmutal/XXX)
+[🤗 Available on Hugging Face](https://huggingface.co/collections/unige-fti/aladdin-fti-amiya)
 
 # Description
 
