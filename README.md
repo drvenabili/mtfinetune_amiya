@@ -9,9 +9,22 @@ Jonathan Mutal<sup>×</sup>, Perla Al Almaoui<sup>×</sup>, Simon Hengchen<sup>�
 <sup>+</sup>iguanodon.ai  
 
 **Paper**:  
-[Aladdin-FTI @ AMIYA: Large Three Wishes for Arabic NLP: Fidelity, Diglossia, and Multidialectal Generation](https://aclanthology.org/####)
+[Aladdin-FTI @ AMIYA: Three Wishes for Arabic NLP: Fidelity, Diglossia, and Multidialectal Generation](https://aclanthology.org/####)
 
-**Model**:  
+If you use (part(s) of) this code, or models, in your research, please cite the following paper:
+
+```
+@inproceedings{mutal2026aladdinfti,
+  title     = {Aladdin-FTI @ AMIYA: Three Wishes for Arabic NLP: Fidelity, Diglossia, and Multidialectal Generation},
+  author    = {Mutal, Jonathan and Al Almaoui, Perla and Hengchen, Simon and Bouillon, Pierrette},
+  booktitle = {Proceedings of the AMIYA Shared Task, co-located with VarDial at EACL 2026},
+  year      = {2026},
+  address   = {Rabat, Morocco},
+  publisher = {Association for Computational Linguistics},
+}
+```
+
+**Models**:  
 [🤗 Available on Hugging Face](https://huggingface.co/collections/unige-fti/aladdin-fti-amiya)
 
 # Description
